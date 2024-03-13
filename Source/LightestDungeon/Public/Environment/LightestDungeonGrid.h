@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "Util/ColorConstants.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "LightestDungeonGrid.generated.h"
 
 
@@ -17,6 +19,18 @@ class LIGHTESTDUNGEON_API ALightestDungeonGrid : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ALightestDungeonGrid();
+
+	UFUNCTION()
+	void LocationToTile(FVector Location, bool IsValid, int32 &Row, int32 &Column);
+
+	UFUNCTION()
+	void TileToLocation(int32 Row, int32 Column, bool IsCenter, bool &IsValid, FVector2D &Location);
+
+	UFUNCTION()
+	void SetSelectedTile(int32 Row, int32 Column);
+
+	UFUNCTION()
+	bool IsTileValid(int32 Row, int32 Column) const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,17 +44,44 @@ protected:
 
 private:
 
+	UFUNCTION()
+	void DrawLine(FVector Start, FVector End, float LineThickness, TArray<FVector> &Vertices, TArray<int32> &Triangles);
+
+	UFUNCTION()
+	void DrawHorizontalLines();
+
+	UFUNCTION()
+	void DrawVerticalLines();
+
+	UFUNCTION(BlueprintPure)
+	float GetWidth() const;
+
+	UFUNCTION(BlueprintPure)
+	float GetHeight() const;
+
+	UFUNCTION()
+	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor Color, float Opacity);
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* LineMaterialInstance;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* SelectionMaterialInstance;
+	
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	int32 NumRows;
+	UMaterialInterface *ParentMaterial;
+	
+	UPROPERTY(EditAnywhere, Category = "Grid Properties")
+	int32 NumRows = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-                     	int32 NumColumns;
+	int32 NumColumns = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	float TileSize;
+	float TileSize = 100;
 
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	float LineThickness;
+	float LineThickness = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
 	FLinearColor LineColor;
@@ -53,8 +94,5 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
 	float SelectionOpacity;
-
-	
-	
 	
 };
