@@ -42,26 +42,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProceduralMeshComponent* GridMesh;
 
-private:
-
-	UFUNCTION()
-	void DrawLine(FVector Start, FVector End, float LineThickness, TArray<FVector> &Vertices, TArray<int32> &Triangles);
-
-	UFUNCTION()
-	void DrawHorizontalLines();
-
-	UFUNCTION()
-	void DrawVerticalLines();
-
-	UFUNCTION(BlueprintPure)
-	float GetWidth() const;
-
-	UFUNCTION(BlueprintPure)
-	float GetHeight() const;
-
-	UFUNCTION()
-	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor Color, float Opacity);
-
 	UPROPERTY()
 	UMaterialInstanceDynamic* LineMaterialInstance;
 
@@ -71,28 +51,63 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
 	UMaterialInterface *ParentMaterial;
 	
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	int32 NumRows = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	int32 NumColumns = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	float TileSize = 100;
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	float LineThickness = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	FLinearColor LineColor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	FLinearColor LineColor = FLinearColor(1, 0, 0, 1);
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	FLinearColor SelectionColor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	FLinearColor SelectionColor = FLinearColor(1, 1, 0, 1);
 
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	float LineOpacity;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	float LineOpacity = 1.0f;
 	
-	UPROPERTY(EditAnywhere, Category = "Grid Properties")
-	float SelectionOpacity;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	float SelectionOpacity = 1.0f;
+
+	UFUNCTION(BlueprintCallable)
+	void DrawGrid();
+
+	UFUNCTION(Blueprintable)
+	void DrawLine(int32 Index, FVector StartPoint, FVector EndPoint);
+
+private:
+
+	UPROPERTY()
+	TArray<int32> Triangles;
+	
+
+	UFUNCTION(Blueprintable)
+	void DrawHorizontalLines();
+
+	UFUNCTION(Blueprintable)
+	void DrawVerticalLines();
+
+	UFUNCTION(BlueprintPure)
+	float GetWidth() const;
+
+	UFUNCTION(BlueprintPure)
+	float GetHeight() const;
+
+	UFUNCTION(BlueprintPure)
+	TArray<FVector> GetVertices(const FVector &StartPoint, const FVector &EndPoint) const;
+
+	
+	void SetTriangles(FVector TopTriVerts, FVector BottomTriVerts, TArray<int32>& TriangleVerticeIndex) const;
+
+	
+
+	UFUNCTION()
+	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor Color, float Opacity);
 	
 };
