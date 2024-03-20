@@ -18,12 +18,13 @@ ALightestDungeonGrid::ALightestDungeonGrid()
 	const FVector& TopTriVerts = FVector(2, 1,  0);
 	const FVector& BottomTriVerts = FVector(2, 3, 1);
 	SetTriangles(TopTriVerts, BottomTriVerts, Triangles);
-
-	DrawGrid();
+	
+	//DrawGrid();
 }
 
 void ALightestDungeonGrid::DrawGrid()
 {
+	LineMaterialInstance = CreateMaterialInstance(LineColor, LineOpacity);
 	DrawHorizontalLines();
 	DrawVerticalLines();
 }
@@ -69,9 +70,19 @@ void ALightestDungeonGrid::DrawLine(int32 Index, FVector StartPoint,FVector EndP
 	TArray<FVector2D> UV0;
 	TArray<FLinearColor> VertexColors;
 	TArray<FProcMeshTangent> Tangents;
+	
 	GridMesh->CreateMeshSection_LinearColor(Index, Vertices, Triangles, Normals, UV0, VertexColors, Tangents ,true);
+	SetGridMaterial(Index, LineMaterialInstance);
 }
 
+void ALightestDungeonGrid::SetGridMaterial(int Index, UMaterialInterface* MaterialInstance)
+{
+	GridMesh->SetMaterial(Index, MaterialInstance);
+}
+
+void ALightestDungeonGrid::DrawSelectionBox()
+{
+}
 
 
 float ALightestDungeonGrid::GetWidth() const
@@ -113,10 +124,9 @@ void ALightestDungeonGrid::SetTriangles(FVector TopTriVerts, FVector BottomTriVe
 	TriangleVerticeIndex.Add(BottomTriVerts.X);
 	TriangleVerticeIndex.Add(BottomTriVerts.Y);
 	TriangleVerticeIndex.Add(BottomTriVerts.Z);
-	
 }
 
-UMaterialInstanceDynamic* ALightestDungeonGrid::CreateMaterialInstance(FLinearColor Color, float Opacity)
+UMaterialInstanceDynamic* ALightestDungeonGrid::CreateMaterialInstance(FLinearColor MaterialColor, float MaterialOpacity)
 {
 	UMaterialInstanceDynamic *MaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(
 		this,
@@ -124,10 +134,8 @@ UMaterialInstanceDynamic* ALightestDungeonGrid::CreateMaterialInstance(FLinearCo
 		"ParentMaterial"
 	);
 
-	MaterialInstance->SetVectorParameterValue("Color", Color);
-	MaterialInstance->SetScalarParameterValue("Opacity", Opacity);
-
-
+	MaterialInstance->SetVectorParameterValue("Color", LineColor);
+	MaterialInstance->SetScalarParameterValue("Opacity", LineOpacity);
 	return MaterialInstance;
 }
 

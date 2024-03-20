@@ -42,10 +42,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProceduralMeshComponent* GridMesh;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	UMaterialInstanceDynamic* LineMaterialInstance;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	UMaterialInstanceDynamic* SelectionMaterialInstance;
 	
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
@@ -78,8 +78,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void DrawGrid();
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION()
 	void DrawLine(int32 Index, FVector StartPoint, FVector EndPoint);
+
+	UFUNCTION()
+	void SetGridMaterial(int Index, UMaterialInterface* MaterialInterface);
+
+	UFUNCTION()
+	void DrawSelectionBox();
+	
 
 private:
 
@@ -105,9 +112,7 @@ private:
 	
 	void SetTriangles(FVector TopTriVerts, FVector BottomTriVerts, TArray<int32>& TriangleVerticeIndex) const;
 
-	
-
-	UFUNCTION()
-	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor Color, float Opacity);
+	UFUNCTION(BlueprintCallable)
+	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor MaterialColor, float MaterialOpacity);
 	
 };
