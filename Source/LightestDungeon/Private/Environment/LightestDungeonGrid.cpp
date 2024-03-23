@@ -15,15 +15,24 @@ ALightestDungeonGrid::ALightestDungeonGrid()
 	GridMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GridMesh"));
 	GridMesh->SetupAttachment(Root);
 
+	SelectionBoxMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SelectionBoxMesh"));
+	SelectionBoxMesh->SetupAttachment(Root);
+
+	
+
 	const FVector& TopTriVerts = FVector(2, 1,  0);
 	const FVector& BottomTriVerts = FVector(2, 3, 1);
 	SetTriangles(TopTriVerts, BottomTriVerts, Triangles);
-	
-	//DrawGrid();
 }
 
 void ALightestDungeonGrid::DrawGrid()
 {
+	if(GridMesh)
+	{
+		GridMesh->ClearAllMeshSections();
+		
+	}
+	
 	LineMaterialInstance = CreateMaterialInstance(LineColor, LineOpacity);
 	DrawHorizontalLines();
 	DrawVerticalLines();
@@ -44,7 +53,7 @@ void ALightestDungeonGrid::DrawHorizontalLines()
 		const float LineEnd = GetWidth();
 		const FVector &StartPoint = FVector(LineStart, 0, 0);
 		const FVector &EndPoint = FVector(LineStart, LineEnd, 0);
-		DrawLine(i, StartPoint, EndPoint);
+		DrawGridLine(i, StartPoint, EndPoint, LineThickness);
 	}
 }
 
@@ -57,13 +66,13 @@ void ALightestDungeonGrid::DrawVerticalLines()
 		const FVector &StartPoint = FVector(0, LineStart, 0);
 		const FVector &EndPoint = FVector(LineEnd, LineStart, 0);
 
-		DrawLine(i + NumRows + 1, StartPoint, EndPoint);
+		DrawGridLine(i + NumRows + 1, StartPoint, EndPoint, LineThickness);
 	}
 }
 
-void ALightestDungeonGrid::DrawLine(int32 Index, FVector StartPoint,FVector EndPoint)
+void ALightestDungeonGrid::DrawGridLine(int32 Index, FVector StartPoint,FVector EndPoint, float Thickness)
 {
-	const TArray<FVector> Vertices = GetVertices(StartPoint, EndPoint);
+	const TArray<FVector> Vertices = GetVertices(StartPoint, EndPoint, Thickness);
 
 	//empty arrays needed to create mesh section
 	TArray<FVector> Normals;
@@ -72,17 +81,38 @@ void ALightestDungeonGrid::DrawLine(int32 Index, FVector StartPoint,FVector EndP
 	TArray<FProcMeshTangent> Tangents;
 	
 	GridMesh->CreateMeshSection_LinearColor(Index, Vertices, Triangles, Normals, UV0, VertexColors, Tangents ,true);
-	SetGridMaterial(Index, LineMaterialInstance);
+	GridMesh->SetMaterial(Index, LineMaterialInstance);
 }
 
-void ALightestDungeonGrid::SetGridMaterial(int Index, UMaterialInterface* MaterialInstance)
-{
-	GridMesh->SetMaterial(Index, MaterialInstance);
-}
 
 void ALightestDungeonGrid::DrawSelectionBox()
 {
+	if(SelectionBoxMesh)
+	{
+		SelectionBoxMesh->ClearAllMeshSections();
+	}
+	SelectionMaterialInstance = CreateMaterialInstance(SelectionColor, SelectionOpacity);
+
+	FVector* StartPoint = new FVector(0, TileSize/2, 0);
+	FVector* EndPoint = new FVector(TileSize, TileSize/2, 0);
+	CreateSelectionBoxMesh(0, *StartPoint, *EndPoint, TileSize);
 }
+
+void ALightestDungeonGrid::CreateSelectionBoxMesh(int32 Index, FVector StartPoint, FVector EndPoint, float Thickness)
+{
+	const TArray<FVector> Vertices = GetVertices(StartPoint, EndPoint, Thickness);
+
+	//empty arrays needed to create mesh section
+	TArray<FVector> Normals;
+	TArray<FVector2D> UV0;
+	TArray<FLinearColor> VertexColors;
+	TArray<FProcMeshTangent> Tangents;
+	
+	SelectionBoxMesh->CreateMeshSection_LinearColor(Index, Vertices, Triangles, Normals, UV0, VertexColors, Tangents ,true);
+	SelectionBoxMesh->SetMaterial(Index, SelectionMaterialInstance);
+	SelectionBoxMesh->SetVisibility(false);
+}
+
 
 
 float ALightestDungeonGrid::GetWidth() const
@@ -95,13 +125,13 @@ float ALightestDungeonGrid::GetHeight() const
 	return NumRows * TileSize;
 }
 
-TArray<FVector> ALightestDungeonGrid::GetVertices(const FVector &StartPoint, const FVector &EndPoint) const
+TArray<FVector> ALightestDungeonGrid::GetVertices(const FVector &StartPoint, const FVector &EndPoint, float Thickness) const
 {
 	const FVector DirectionNormalized = (EndPoint - StartPoint).GetSafeNormal();
 	const FVector UpVector = FVector(0, 0, 1);
 	const FVector Cross = FVector::CrossProduct(DirectionNormalized, UpVector);
 	const FVector LineThicknessDirection = Cross.GetSafeNormal();
-	const float HalfLineThickness = LineThickness / 2;
+	const float HalfLineThickness = Thickness / 2;
 	
 	const FVector Vertex0 = StartPoint + LineThicknessDirection * HalfLineThickness;
 	const FVector Vertex1 = EndPoint + LineThicknessDirection * HalfLineThickness;
@@ -134,26 +164,81 @@ UMaterialInstanceDynamic* ALightestDungeonGrid::CreateMaterialInstance(FLinearCo
 		"ParentMaterial"
 	);
 
-	MaterialInstance->SetVectorParameterValue("Color", LineColor);
-	MaterialInstance->SetScalarParameterValue("Opacity", LineOpacity);
+	MaterialInstance->SetVectorParameterValue("Color", MaterialColor);
+	MaterialInstance->SetScalarParameterValue("Opacity", MaterialOpacity);
 	return MaterialInstance;
 }
 
-void ALightestDungeonGrid::LocationToTile(FVector Location, bool IsValid, int32& Row, int32& Column)
+void ALightestDungeonGrid::UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid) const
 {
+	
+	int32 CursorRow, CursorColumn;
+	LocationToTile(CursorPosition, CursorOverGrid, CursorRow, CursorColumn);
+
+	if(CursorOverGrid)
+	{
+		//selection box should be visible...
+		
+		TileToLocation(CursorRow, CursorColumn, *SelectionBoxPosition, *SelectionBoxCenter);
+
+		SelectionBoxMesh->SetVisibility(true);
+		SelectionBoxMesh->SetWorldLocation(*SelectionBoxPosition);
+	}
+	else
+	{
+		//selection box should be invisible...
+		SelectionBoxMesh->SetVisibility(false);
+	}
 }
 
-void ALightestDungeonGrid::TileToLocation(int32 Row, int32 Column, bool IsCenter, bool& IsValid, FVector2D& Location)
+FVector ALightestDungeonGrid::GetSelectionBoxCenter() const
 {
+	return *SelectionBoxCenter;
+}
+
+
+void ALightestDungeonGrid::LocationToTile(FVector Location, bool& IsValid, int32& Row, int32& Column) const
+{
+	const float GridXPosition = GetActorLocation().X;
+	const float MouseXPosition = Location.X;
+	Row = FMath::FloorToInt((MouseXPosition - GridXPosition) / GetWidth() * NumRows);
+
+	const float GridYPosition = GetActorLocation().Y;
+	const float MouseYPosition = Location.Y;
+	Column = FMath::FloorToInt((MouseYPosition - GridYPosition) / GetHeight() * NumColumns);
+
+	IsValid = IsTileValid(Row, Column);
+}
+
+void ALightestDungeonGrid::TileToLocation(int32 Row, int32 Column, FVector& Location, FVector& Center) const
+{
+	float GridXPosition = GetActorLocation().X;
+	float GridYPosition = GetActorLocation().Y;
+
+	float TileLocalXPosition = Row * TileSize;
+	float TileLocalYPosition = Column * TileSize;
+
+	float TileWorldXPosition = GridXPosition + TileLocalXPosition;
+	float TileWorldYPosition = GridYPosition + TileLocalYPosition;
+	Location = FVector(TileWorldXPosition, TileWorldYPosition, GetActorLocation().Z);
+
+	Center = FVector(Location.X + TileSize / 2, Location.Y + TileSize / 2, Location.Z);
 }
 
 void ALightestDungeonGrid::SetSelectedTile(int32 Row, int32 Column)
 {
+	
 }
 
 bool ALightestDungeonGrid::IsTileValid(int32 Row, int32 Column) const
 {
+
+	if (Row >= 0 && Row < NumRows && Column >= 0 && Column < NumColumns)
+	{
+		return true;
+	}
 	return false;
 }
+
 
 

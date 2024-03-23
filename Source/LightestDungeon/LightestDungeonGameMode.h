@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "LightestDungeonGameMode.generated.h"
 
+
+
 UCLASS(minimalapi)
 class ALightestDungeonGameMode : public AGameModeBase
 {
@@ -13,6 +15,8 @@ class ALightestDungeonGameMode : public AGameModeBase
 
 public:
 	ALightestDungeonGameMode();
+
+
 };
 
 

@@ -2,8 +2,8 @@
 
 #include "LightestDungeonGameMode.h"
 #include "LightestDungeonPlayerController.h"
-#include "LightestDungeonCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+
 
 ALightestDungeonGameMode::ALightestDungeonGameMode()
 {
@@ -24,3 +24,5 @@ ALightestDungeonGameMode::ALightestDungeonGameMode()
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
 }
+
+

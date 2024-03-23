@@ -11,7 +11,7 @@
 #include "LightestDungeonGrid.generated.h"
 
 
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class LIGHTESTDUNGEON_API ALightestDungeonGrid : public AActor
 {
 	GENERATED_BODY()
@@ -21,16 +21,20 @@ public:
 	ALightestDungeonGrid();
 
 	UFUNCTION()
-	void LocationToTile(FVector Location, bool IsValid, int32 &Row, int32 &Column);
+	void LocationToTile(FVector Location, bool& IsValid, int32 &Row, int32 &Column) const;
 
 	UFUNCTION()
-	void TileToLocation(int32 Row, int32 Column, bool IsCenter, bool &IsValid, FVector2D &Location);
+	void TileToLocation(int32 Row, int32 Column, FVector &Location, FVector& Center) const;
 
 	UFUNCTION()
 	void SetSelectedTile(int32 Row, int32 Column);
 
 	UFUNCTION()
 	bool IsTileValid(int32 Row, int32 Column) const;
+
+	void UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid) const;
+
+	FVector GetSelectionBoxCenter() const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -42,14 +46,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProceduralMeshComponent* GridMesh;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UProceduralMeshComponent* SelectionBoxMesh;
+
+	UPROPERTY(BlueprintReadOnly)
 	UMaterialInstanceDynamic* LineMaterialInstance;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	UMaterialInstanceDynamic* SelectionMaterialInstance;
 	
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
 	UMaterialInterface *ParentMaterial;
+	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	int32 NumRows = 10;
@@ -79,40 +87,44 @@ protected:
 	void DrawGrid();
 
 	UFUNCTION()
-	void DrawLine(int32 Index, FVector StartPoint, FVector EndPoint);
+	void DrawGridLine(int32 Index, FVector StartPoint, FVector EndPoint, float Thickness);
 
-	UFUNCTION()
-	void SetGridMaterial(int Index, UMaterialInterface* MaterialInterface);
-
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void DrawSelectionBox();
+
+	UFUNCTION()
+	void CreateSelectionBoxMesh(int32 Index, FVector StartPoint,FVector EndPoint, float Thickness);
 	
 
 private:
 
 	UPROPERTY()
 	TArray<int32> Triangles;
-	
 
-	UFUNCTION(Blueprintable)
+	
+	FVector* SelectionBoxPosition = new FVector(0, 0, 0);
+
+	FVector* SelectionBoxCenter = new FVector(0, 0, 0);
+
+	UFUNCTION()
 	void DrawHorizontalLines();
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION()
 	void DrawVerticalLines();
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION()
 	float GetWidth() const;
 
-	UFUNCTION(BlueprintPure)
+	UFUNCTION()
 	float GetHeight() const;
 
-	UFUNCTION(BlueprintPure)
-	TArray<FVector> GetVertices(const FVector &StartPoint, const FVector &EndPoint) const;
+	UFUNCTION()
+	TArray<FVector> GetVertices(const FVector &StartPoint, const FVector &EndPoint, float Thickness) const;
 
 	
 	void SetTriangles(FVector TopTriVerts, FVector BottomTriVerts, TArray<int32>& TriangleVerticeIndex) const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	UMaterialInstanceDynamic* CreateMaterialInstance(FLinearColor MaterialColor, float MaterialOpacity);
 	
 };

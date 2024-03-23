@@ -11,6 +11,7 @@
 class UNiagaraSystem;
 class UInputMappingContext;
 class UInputAction;
+class ALightestDungeonGrid;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -41,8 +42,13 @@ public:
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* SetDestinationTouchAction;
+	
 
 protected:
+
+	UPROPERTY()
+	const ALightestDungeonGrid* Grid;
+
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
 
@@ -50,6 +56,11 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	virtual void Tick(float DeltaSeconds) override;
+
+	//Get cursor position to set grid selection box position
+	void GetMousePosition(bool& IsValid, FVector& Location) const;
 
 	/** Input handlers for SetDestination action. */
 	void OnInputStarted();
@@ -60,8 +71,11 @@ protected:
 
 private:
 	FVector CachedDestination;
+	FVector MousePosition;
+	FVector SelectedTilePosition;
 
 	bool bIsTouch; // Is it a touch device
+	bool bIsOverGrid;
 	float FollowTime; // For how long it has been pressed
 };
 

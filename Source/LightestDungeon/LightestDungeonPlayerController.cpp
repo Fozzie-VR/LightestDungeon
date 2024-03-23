@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+#include "Environment/LightestDungeonGrid.h"
 #include "LightestDungeonPlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
@@ -11,6 +12,7 @@
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -32,7 +34,49 @@ void ALightestDungeonPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+
+	// Get a reference to the grid
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ALightestDungeonGrid::StaticClass(), FoundActors);
+
+	//print to console
+	if (FoundActors.Num() > 0)
+	{
+		Grid = Cast<ALightestDungeonGrid>(FoundActors[0]);
+		//print message to screen
+		UE_LOG(LogTemp, Warning, TEXT("Grid found: %s"), *Grid->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Grid not found"));
+	}
+	
 }
+
+void ALightestDungeonPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	bool IsCursorOverGround = false;
+	
+	GetMousePosition(IsCursorOverGround, MousePosition);
+	if(IsCursorOverGround)
+	{
+		Grid->UpdateSelectionBoxPosition(MousePosition, bIsOverGrid);
+	}
+}
+
+void ALightestDungeonPlayerController::GetMousePosition(bool &CursorOverGround, FVector &CursorPosition)const
+{
+	FHitResult Hit;
+	CursorOverGround = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+	if(CursorOverGround)
+	{
+		CursorPosition = Hit.Location;
+	}
+}
+
+
+
 
 void ALightestDungeonPlayerController::SetupInputComponent()
 {
@@ -71,24 +115,14 @@ void ALightestDungeonPlayerController::OnSetDestinationTriggered()
 	// We flag that the input is being pressed
 	FollowTime += GetWorld()->GetDeltaSeconds();
 	
-	// We look for the location in the world where the player has pressed the input
-	FHitResult Hit;
-	bool bHitSuccessful = false;
-	if (bIsTouch)
+	bool IsOverGround;
+	GetMousePosition(IsOverGround, MousePosition);
+	if(IsOverGround)
 	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
+		Grid->UpdateSelectionBoxPosition(MousePosition, bIsOverGrid);
 	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-
-	// If we hit a surface, cache the location
-	if (bHitSuccessful)
-	{
-		CachedDestination = Hit.Location;
-	}
-	
+	if(!bIsOverGrid) return;	
+	CachedDestination = Grid->GetSelectionBoxCenter();
 	// Move towards mouse pointer or touch
 	APawn* ControlledPawn = GetPawn();
 	if (ControlledPawn != nullptr)
