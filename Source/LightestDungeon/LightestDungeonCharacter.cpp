@@ -11,6 +11,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
+
 ALightestDungeonCharacter::ALightestDungeonCharacter()
 {
 	// Set size for player capsule

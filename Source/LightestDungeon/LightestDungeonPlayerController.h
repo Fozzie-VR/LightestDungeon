@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/InputSettings.h"
 #include "LightestDungeonPlayerController.generated.h"
+
+
+
 
 /** Forward declaration to improve compiling times */
 class UNiagaraSystem;
@@ -15,6 +19,9 @@ class ALightestDungeonGrid;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerMove);
+
+
 UCLASS()
 class ALightestDungeonPlayerController : public APlayerController
 {
@@ -22,6 +29,9 @@ class ALightestDungeonPlayerController : public APlayerController
 
 public:
 	ALightestDungeonPlayerController();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerMove OnPlayerMove;
 
 	/** Time Threshold to know if it was a short press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -51,6 +61,8 @@ protected:
 
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
+
+	EHardwareDevicePrimaryType GetHardwareDevicePrimaryType() const;
 
 	virtual void SetupInputComponent() override;
 	

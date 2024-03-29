@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LightestDungeonPlayerController.h"
 #include "GameFramework/GameModeBase.h"
 #include "LightestDungeonGameMode.generated.h"
 
@@ -15,7 +16,6 @@ class ALightestDungeonGameMode : public AGameModeBase
 
 public:
 	ALightestDungeonGameMode();
-
 
 };
 

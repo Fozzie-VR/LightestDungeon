@@ -1,9 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Environment/LightestDungeonGrid.h"
+
 #include "LightestDungeonPlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/InputDeviceSubsystem.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Environment/LightestDungeonGrid.h"
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "LightestDungeonCharacter.h"
@@ -75,8 +77,13 @@ void ALightestDungeonPlayerController::GetMousePosition(bool &CursorOverGround, 
 	}
 }
 
-
-
+//Unused for now, but could be handy
+EHardwareDevicePrimaryType ALightestDungeonPlayerController::GetHardwareDevicePrimaryType() const
+{
+	UInputDeviceSubsystem* InputDeviceSubsystem = GetGameInstance()->GetEngine()->GetEngineSubsystem<UInputDeviceSubsystem>();
+	
+	return InputDeviceSubsystem->GetMostRecentlyUsedHardwareDevice(GetPlatformUserId()).PrimaryDeviceType;
+}
 
 void ALightestDungeonPlayerController::SetupInputComponent()
 {
@@ -130,6 +137,8 @@ void ALightestDungeonPlayerController::OnSetDestinationTriggered()
 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
 	}
+
+	
 }
 
 void ALightestDungeonPlayerController::OnSetDestinationReleased()
@@ -143,6 +152,7 @@ void ALightestDungeonPlayerController::OnSetDestinationReleased()
 	}
 
 	FollowTime = 0.f;
+	OnPlayerMove.Broadcast();
 }
 
 // Triggered every frame when the input is held down
