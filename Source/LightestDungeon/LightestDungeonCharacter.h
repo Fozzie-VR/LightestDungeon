@@ -14,6 +14,8 @@ class ALightestDungeonCharacter : public ACharacter
 public:
 	ALightestDungeonCharacter();
 
+	virtual void PossessedBy(AController* NewController) override;
+
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -30,5 +32,7 @@ private:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
+
+	void InitPLayerHUD() const;
 };
 

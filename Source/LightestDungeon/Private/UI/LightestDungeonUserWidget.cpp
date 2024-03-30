@@ -2,3 +2,9 @@
 
 
 #include "UI/LightestDungeonUserWidget.h"
+
+void ULightestDungeonUserWidget::SetWidgetController(ULightestDungeonWidgetController* InWidgetController)
+{
+	WidgetController = InWidgetController;
+	OnWidgetControllerSet();
+}
