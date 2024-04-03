@@ -10,13 +10,13 @@ void UTurnWidgetController::BindCallbacksToDependencies()
 
 void UTurnWidgetController::BroadcastInitialValues()
 {
-	OnCurrentTurnChanged.Broadcast();
+	OnTurnsLeftChanged.Broadcast(MaxTurns);
 }
 
 void UTurnWidgetController::SetCurrentTurn()
 {
 	CurrentTurn++;
-	OnCurrentTurnChanged.Broadcast();
+	OnTurnsLeftChanged.Broadcast(GetTurnsLeft());
 }
 
 int32 UTurnWidgetController::GetTurnsLeft() const

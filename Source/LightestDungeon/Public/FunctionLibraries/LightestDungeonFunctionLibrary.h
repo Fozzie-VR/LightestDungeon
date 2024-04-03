@@ -13,7 +13,8 @@ UCLASS()
 class LIGHTESTDUNGEON_API ULightestDungeonFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
-
+	
+public:
 	UFUNCTION(BlueprintPure, Category = "FunctionLibrary|WidgetControllers")
 	static UTurnWidgetController* GetTurnWidgetController(const UObject* WorldContextObject);
 };

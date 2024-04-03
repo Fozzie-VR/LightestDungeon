@@ -10,7 +10,7 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCurrentTurnChangedSignature);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTurnsLeftChangedSignature, int32);
 
 UCLASS(BlueprintType, Blueprintable)
 class LIGHTESTDUNGEON_API UTurnWidgetController : public ULightestDungeonWidgetController
@@ -29,8 +29,7 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turn Properties")
 	int32 MaxTurns = 10;
 
-	UPROPERTY(BlueprintAssignable, Category = "Turn Events")
-	FOnCurrentTurnChangedSignature OnCurrentTurnChanged;
+	FOnTurnsLeftChangedSignature OnTurnsLeftChanged;
 
 private:
 	UFUNCTION()

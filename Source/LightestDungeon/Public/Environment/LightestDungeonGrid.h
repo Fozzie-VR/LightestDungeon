@@ -5,10 +5,25 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
-#include "Util/ColorConstants.h"
-#include "Kismet/KismetMaterialLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "LightestDungeonGrid.generated.h"
+
+USTRUCT()
+struct FTileCoords
+{
+	GENERATED_BODY()
+
+	int32 Row = 0;
+	int32 Column = 0;
+
+	FTileCoords(){}
+
+	FTileCoords(int32 TileRow, int32 TileColumn)
+	{
+		Row = TileRow;
+		Column = TileColumn;
+	}
+};
 
 
 UCLASS(BlueprintType, Blueprintable)
@@ -19,6 +34,18 @@ class LIGHTESTDUNGEON_API ALightestDungeonGrid : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ALightestDungeonGrid();
+
+    FTileCoords CurrentTile {0,0};
+
+	
+	TArray<FTileCoords> GetTilesInPlayerRange(int Range) const;
+
+	UPROPERTY()
+	TArray<int> OutlineMeshIndices;
+
+	UFUNCTION()
+	void OutlineReachableTiles();
+	
 
 	UFUNCTION()
 	void LocationToTile(FVector Location, bool& IsValid, int32 &Row, int32 &Column) const;
@@ -32,7 +59,7 @@ public:
 	UFUNCTION()
 	bool IsTileValid(int32 Row, int32 Column) const;
 
-	void UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid) const;
+	void UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid);
 
 	FVector GetSelectionBoxCenter() const;
 

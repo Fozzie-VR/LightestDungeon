@@ -5,15 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "LightestDungeonHUD.generated.h"
-
-
-class UTurnWidgetController;
-class ALightestDungeonPlayerController;
-struct FControllerParams;
 /**
  * 
  */
+class UTurnWidgetController;
+class ALightestDungeonPlayerController;
 class ULightestDungeonUserWidget;
+struct FControllerParams;
+
 UCLASS()
 class LIGHTESTDUNGEON_API ALightestDungeonHUD : public AHUD
 {

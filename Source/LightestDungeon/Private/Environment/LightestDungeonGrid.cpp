@@ -3,6 +3,9 @@
 
 #include "Environment/LightestDungeonGrid.h"
 
+#include "Kismet/KismetMaterialLibrary.h"
+
+
 // Sets default values
 ALightestDungeonGrid::ALightestDungeonGrid()
 {
@@ -17,8 +20,6 @@ ALightestDungeonGrid::ALightestDungeonGrid()
 
 	SelectionBoxMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SelectionBoxMesh"));
 	SelectionBoxMesh->SetupAttachment(Root);
-
-	
 
 	const FVector& TopTriVerts = FVector(2, 1,  0);
 	const FVector& BottomTriVerts = FVector(2, 3, 1);
@@ -82,6 +83,8 @@ void ALightestDungeonGrid::DrawGridLine(int32 Index, FVector StartPoint,FVector 
 	
 	GridMesh->CreateMeshSection_LinearColor(Index, Vertices, Triangles, Normals, UV0, VertexColors, Tangents ,true);
 	GridMesh->SetMaterial(Index, LineMaterialInstance);
+	
+	
 }
 
 
@@ -169,7 +172,7 @@ UMaterialInstanceDynamic* ALightestDungeonGrid::CreateMaterialInstance(FLinearCo
 	return MaterialInstance;
 }
 
-void ALightestDungeonGrid::UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid) const
+void ALightestDungeonGrid::UpdateSelectionBoxPosition(FVector CursorPosition, bool& CursorOverGrid)
 {
 	
 	int32 CursorRow, CursorColumn;
@@ -178,7 +181,8 @@ void ALightestDungeonGrid::UpdateSelectionBoxPosition(FVector CursorPosition, bo
 	if(CursorOverGrid)
 	{
 		//selection box should be visible...
-		
+		CurrentTile.Row = CursorRow;
+		CurrentTile.Column = CursorColumn;
 		TileToLocation(CursorRow, CursorColumn, *SelectionBoxPosition, *SelectionBoxCenter);
 
 		SelectionBoxMesh->SetVisibility(true);
@@ -197,16 +201,81 @@ FVector ALightestDungeonGrid::GetSelectionBoxCenter() const
 }
 
 
+
+
+TArray<FTileCoords> ALightestDungeonGrid::GetTilesInPlayerRange(int PlayerRange) const
+{
+	TArray<FTileCoords> TilesInPlayerRange;
+	TilesInPlayerRange.Add(CurrentTile);
+
+	for(int i = 1; i <= PlayerRange; i++)
+	{
+		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row + i, CurrentTile.Column));
+		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row - i, CurrentTile.Column));
+		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row, CurrentTile.Column + i));
+		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row, CurrentTile.Column - i));
+	}
+
+	return TilesInPlayerRange;
+}
+
+void ALightestDungeonGrid::OutlineReachableTiles()
+{
+	TArray<FTileCoords> TilesInPlayerRange = GetTilesInPlayerRange(1);
+	int BottomRow = 0;
+	int TopRow = 0;
+	int LeftColumn = 0;
+	int RightColumn= 0;
+	for(int i = 0; i < TilesInPlayerRange.Num(); i++)
+	{
+		FTileCoords Tile = TilesInPlayerRange[i];
+		if(i == 0)
+		{
+			BottomRow = Tile.Row;
+			TopRow = Tile.Row;
+			LeftColumn = Tile.Column;
+			RightColumn = Tile.Column;
+		}
+
+		if(Tile.Row < BottomRow)
+		{
+			BottomRow = Tile.Row;
+		}
+
+		if(Tile.Row > TopRow)
+		{
+			TopRow = Tile.Row;
+		}
+
+		if(Tile.Column < LeftColumn)
+		{
+			LeftColumn = Tile.Column;
+		}
+
+		if(Tile.Column > RightColumn)
+		{
+			RightColumn = Tile.Column;
+		}
+	}
+
+	for(int i = 0; i < TilesInPlayerRange.Num(); i++)
+	{
+		//loop through and check if tiles are bottom, top, left, right
+		//if they are, add index of outer horizontal/vertical lines to array
+	}
+}
+
 void ALightestDungeonGrid::LocationToTile(FVector Location, bool& IsValid, int32& Row, int32& Column) const
 {
 	const float GridXPosition = GetActorLocation().X;
 	const float MouseXPosition = Location.X;
 	Row = FMath::FloorToInt((MouseXPosition - GridXPosition) / GetWidth() * NumRows);
-
+	
 	const float GridYPosition = GetActorLocation().Y;
 	const float MouseYPosition = Location.Y;
+	const float CurrentColumn = FMath::FloorToInt((MouseYPosition - GridYPosition) / GetHeight() * NumColumns);
 	Column = FMath::FloorToInt((MouseYPosition - GridYPosition) / GetHeight() * NumColumns);
-
+	
 	IsValid = IsTileValid(Row, Column);
 }
 

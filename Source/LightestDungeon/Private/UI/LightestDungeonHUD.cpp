@@ -3,8 +3,6 @@
 
 #include "UI/LightestDungeonHUD.h"
 #include "Blueprint/UserWidget.h"
-#include "UI/LightestDungeonHUD.h"
-
 #include "LightestDungeonWidgetController.h"
 #include "TurnSystem/TurnWidgetController.h"
 #include "UI/LightestDungeonUserWidget.h"
