@@ -52,12 +52,15 @@ public:
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* SetDestinationTouchAction;
-	
 
+	
 protected:
 
 	UPROPERTY()
 	ALightestDungeonGrid* Grid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int MovementRange = 1;
 
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;

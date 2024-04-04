@@ -21,6 +21,9 @@ ALightestDungeonGrid::ALightestDungeonGrid()
 	SelectionBoxMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SelectionBoxMesh"));
 	SelectionBoxMesh->SetupAttachment(Root);
 
+	OutlineMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("OutlineMesh"));
+	OutlineMesh->SetupAttachment(Root);
+
 	const FVector& TopTriVerts = FVector(2, 1,  0);
 	const FVector& BottomTriVerts = FVector(2, 3, 1);
 	SetTriangles(TopTriVerts, BottomTriVerts, Triangles);
@@ -87,7 +90,7 @@ void ALightestDungeonGrid::DrawGridLine(int32 Index, FVector StartPoint,FVector 
 	
 }
 
-
+//Called in blueprint
 void ALightestDungeonGrid::DrawSelectionBox()
 {
 	if(SelectionBoxMesh)
@@ -100,6 +103,7 @@ void ALightestDungeonGrid::DrawSelectionBox()
 	FVector* EndPoint = new FVector(TileSize, TileSize/2, 0);
 	CreateSelectionBoxMesh(0, *StartPoint, *EndPoint, TileSize);
 }
+
 
 void ALightestDungeonGrid::CreateSelectionBoxMesh(int32 Index, FVector StartPoint, FVector EndPoint, float Thickness)
 {
@@ -200,22 +204,27 @@ FVector ALightestDungeonGrid::GetSelectionBoxCenter() const
 	return *SelectionBoxCenter;
 }
 
-
-
-
 TArray<FTileCoords> ALightestDungeonGrid::GetTilesInPlayerRange(int PlayerRange) const
 {
 	TArray<FTileCoords> TilesInPlayerRange;
-	TilesInPlayerRange.Add(CurrentTile);
 
-	for(int i = 1; i <= PlayerRange; i++)
+	for(int i = 0; i <= NumRows; i++)
 	{
-		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row + i, CurrentTile.Column));
-		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row - i, CurrentTile.Column));
-		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row, CurrentTile.Column + i));
-		TilesInPlayerRange.Add(FTileCoords(CurrentTile.Row, CurrentTile.Column - i));
-	}
+		for(int k = 0; k <= NumColumns; k++)
+		{
+			if(CurrentTile.Row -1 < 0)
+				continue;
 
+			if(i >= CurrentTile.Row - PlayerRange && i <= CurrentTile.Row + PlayerRange)
+			{
+				if(k >= CurrentTile.Column - PlayerRange && k <= CurrentTile.Column + PlayerRange)
+				{
+					FTileCoords Tile = FTileCoords(i, k);
+					TilesInPlayerRange.Add(Tile);
+				}
+			}
+		}
+	}
 	return TilesInPlayerRange;
 }
 
@@ -258,11 +267,18 @@ void ALightestDungeonGrid::OutlineReachableTiles()
 		}
 	}
 
-	for(int i = 0; i < TilesInPlayerRange.Num(); i++)
-	{
-		//loop through and check if tiles are bottom, top, left, right
-		//if they are, add index of outer horizontal/vertical lines to array
-	}
+	FVector StartPoint;
+	FVector Center;
+	TileToLocation(BottomRow, LeftColumn, StartPoint, Center);
+	
+
+	
+}
+
+void ALightestDungeonGrid::SetPlayerRange(int Range)
+{
+	PlayerRange = Range;
+	//Make outline mesh and set visibility to false
 }
 
 void ALightestDungeonGrid::LocationToTile(FVector Location, bool& IsValid, int32& Row, int32& Column) const

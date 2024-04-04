@@ -45,6 +45,9 @@ public:
 
 	UFUNCTION()
 	void OutlineReachableTiles();
+
+	UFUNCTION()
+	void SetPlayerRange(int Range);
 	
 
 	UFUNCTION()
@@ -76,11 +79,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProceduralMeshComponent* SelectionBoxMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UProceduralMeshComponent* OutlineMesh;
+
 	UPROPERTY(BlueprintReadOnly)
 	UMaterialInstanceDynamic* LineMaterialInstance;
 
 	UPROPERTY(BlueprintReadOnly)
 	UMaterialInstanceDynamic* SelectionMaterialInstance;
+
+	UPROPERTY(BlueprintReadOnly)
+	UMaterialInstanceDynamic* OutlineMaterialInstance;
 	
 	UPROPERTY(EditAnywhere, Category = "Grid Properties")
 	UMaterialInterface *ParentMaterial;
@@ -128,7 +137,7 @@ private:
 	UPROPERTY()
 	TArray<int32> Triangles;
 
-	
+	int PlayerRange = 1;
 	FVector* SelectionBoxPosition = new FVector(0, 0, 0);
 
 	FVector* SelectionBoxCenter = new FVector(0, 0, 0);

@@ -47,6 +47,7 @@ void ALightestDungeonPlayerController::BeginPlay()
 		Grid = Cast<ALightestDungeonGrid>(FoundActors[0]);
 		//print message to screen
 		UE_LOG(LogTemp, Warning, TEXT("Grid found: %s"), *Grid->GetName());
+		Grid->SetPlayerRange(MovementRange);
 	}
 	else
 	{
