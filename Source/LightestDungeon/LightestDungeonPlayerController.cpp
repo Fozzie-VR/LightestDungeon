@@ -154,6 +154,7 @@ void ALightestDungeonPlayerController::OnSetDestinationReleased()
 
 	FollowTime = 0.f;
 	OnPlayerMove.Broadcast();
+	Grid->OutlineReachableTiles();
 }
 
 // Triggered every frame when the input is held down

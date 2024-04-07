@@ -23,6 +23,7 @@ ALightestDungeonGrid::ALightestDungeonGrid()
 
 	OutlineMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("OutlineMesh"));
 	OutlineMesh->SetupAttachment(Root);
+	OutlineMesh->SetTranslucentSortPriority(100);
 
 	const FVector& TopTriVerts = FVector(2, 1,  0);
 	const FVector& BottomTriVerts = FVector(2, 3, 1);
@@ -34,7 +35,6 @@ void ALightestDungeonGrid::DrawGrid()
 	if(GridMesh)
 	{
 		GridMesh->ClearAllMeshSections();
-		
 	}
 	
 	LineMaterialInstance = CreateMaterialInstance(LineColor, LineOpacity);
@@ -120,6 +120,39 @@ void ALightestDungeonGrid::CreateSelectionBoxMesh(int32 Index, FVector StartPoin
 	SelectionBoxMesh->SetVisibility(false);
 }
 
+void ALightestDungeonGrid::CreateOutlineMesh(int32 BottomRow, int32 TopRow, int32 LeftColumn, int32 RightColumn)
+{
+	const FVector BottomLeft = GetOutlineVertex(BottomRow - 1, LeftColumn - 1);
+	const FVector BottomRight = GetOutlineVertex(BottomRow - 1, RightColumn);
+	const FVector TopRight = GetOutlineVertex(TopRow, RightColumn);
+	const FVector TopLeft = GetOutlineVertex(TopRow, LeftColumn - 1);
+
+	const TArray<FVector> BottomVertices = GetVertices(BottomLeft, BottomRight, LineThickness);
+	const TArray<FVector> TopVertices = GetVertices(TopLeft, TopRight, LineThickness);
+	const TArray<FVector> LeftVertices = GetVertices(BottomLeft, TopLeft, LineThickness);
+	const TArray<FVector> RightVertices = GetVertices(BottomRight, TopRight, LineThickness);
+	
+	const TArray<FVector> Normals;
+	const TArray<FVector2D> UV0;
+	const TArray<FLinearColor> VertexColors;
+	const TArray<FProcMeshTangent> Tangents;
+
+	if(OutlineMaterialInstance == nullptr)
+	{
+		OutlineMaterialInstance = CreateMaterialInstance(OutlineColor, OutlineOpacity);
+	}
+
+	OutlineMesh->ClearAllMeshSections();
+	
+	OutlineMesh->CreateMeshSection_LinearColor(0, BottomVertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+	OutlineMesh->CreateMeshSection_LinearColor(1, TopVertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+	OutlineMesh->CreateMeshSection_LinearColor(2, LeftVertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+	OutlineMesh->CreateMeshSection_LinearColor(3, RightVertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+	OutlineMesh->SetMaterial(0, OutlineMaterialInstance);
+	OutlineMesh->SetMaterial(1, OutlineMaterialInstance);
+	OutlineMesh->SetMaterial(2, OutlineMaterialInstance);
+	OutlineMesh->SetMaterial(3, OutlineMaterialInstance);
+}
 
 
 float ALightestDungeonGrid::GetWidth() const
@@ -180,8 +213,10 @@ void ALightestDungeonGrid::UpdateSelectionBoxPosition(FVector CursorPosition, bo
 {
 	
 	int32 CursorRow, CursorColumn;
+	//ToDo: Location to tile needs to check if cursor is over a reachable tile and player controller should use this instead of CursorOverGrid
 	LocationToTile(CursorPosition, CursorOverGrid, CursorRow, CursorColumn);
 
+	//ToDo: If cursor is over a reachable tile, update the selection box
 	if(CursorOverGrid)
 	{
 		//selection box should be visible...
@@ -204,7 +239,7 @@ FVector ALightestDungeonGrid::GetSelectionBoxCenter() const
 	return *SelectionBoxCenter;
 }
 
-TArray<FTileCoords> ALightestDungeonGrid::GetTilesInPlayerRange(int PlayerRange) const
+TArray<FTileCoords> ALightestDungeonGrid::GetTilesInPlayerRange(int Range) const
 {
 	TArray<FTileCoords> TilesInPlayerRange;
 
@@ -212,15 +247,13 @@ TArray<FTileCoords> ALightestDungeonGrid::GetTilesInPlayerRange(int PlayerRange)
 	{
 		for(int k = 0; k <= NumColumns; k++)
 		{
-			if(CurrentTile.Row -1 < 0)
-				continue;
-
-			if(i >= CurrentTile.Row - PlayerRange && i <= CurrentTile.Row + PlayerRange)
+			if(i >= CurrentTile.Row - Range && i <= CurrentTile.Row + Range)
 			{
-				if(k >= CurrentTile.Column - PlayerRange && k <= CurrentTile.Column + PlayerRange)
+				if(k >= CurrentTile.Column - Range && k <= CurrentTile.Column + Range)
 				{
 					FTileCoords Tile = FTileCoords(i, k);
 					TilesInPlayerRange.Add(Tile);
+					UE_LOG(LogTemp, Warning, TEXT("Adding Tile: %d, %d"), i, k);
 				}
 			}
 		}
@@ -266,12 +299,7 @@ void ALightestDungeonGrid::OutlineReachableTiles()
 			RightColumn = Tile.Column;
 		}
 	}
-
-	FVector StartPoint;
-	FVector Center;
-	TileToLocation(BottomRow, LeftColumn, StartPoint, Center);
-	
-
+	CreateOutlineMesh(BottomRow, TopRow, LeftColumn, RightColumn);
 	
 }
 
@@ -308,6 +336,19 @@ void ALightestDungeonGrid::TileToLocation(int32 Row, int32 Column, FVector& Loca
 	Location = FVector(TileWorldXPosition, TileWorldYPosition, GetActorLocation().Z);
 
 	Center = FVector(Location.X + TileSize / 2, Location.Y + TileSize / 2, Location.Z);
+}
+
+FVector ALightestDungeonGrid::GetOutlineVertex(int32 Row, int32 Column) const
+{
+	float GridXPosition = GetActorLocation().X;
+	float GridYPosition = GetActorLocation().Y;
+
+	float TileLocalXPosition = Row * TileSize;
+	float TileLocalYPosition = Column * TileSize;
+
+	float TileWorldXPosition = GridXPosition + TileLocalXPosition;
+	float TileWorldYPosition = GridYPosition + TileLocalYPosition;
+	return FVector(TileWorldXPosition, TileWorldYPosition, GetActorLocation().Z);
 }
 
 void ALightestDungeonGrid::SetSelectedTile(int32 Row, int32 Column)

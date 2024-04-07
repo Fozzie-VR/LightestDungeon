@@ -54,8 +54,11 @@ public:
 	void LocationToTile(FVector Location, bool& IsValid, int32 &Row, int32 &Column) const;
 
 	UFUNCTION()
-	void TileToLocation(int32 Row, int32 Column, FVector &Location, FVector& Center) const;
+	void TileToLocation(int32 Row, int32 Column, FVector &Location, FVector &Center) const;
 
+	UFUNCTION()
+	FVector GetOutlineVertex(int32 Row, int32 Column) const;
+	
 	UFUNCTION()
 	void SetSelectedTile(int32 Row, int32 Column);
 
@@ -114,10 +117,16 @@ protected:
 	FLinearColor SelectionColor = FLinearColor(1, 1, 0, 1);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	FLinearColor OutlineColor = FLinearColor(0, 1, 0, 1);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	float LineOpacity = 1.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
 	float SelectionOpacity = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid Properties")
+	float OutlineOpacity = 1.0f;
 
 	UFUNCTION(BlueprintCallable)
 	void DrawGrid();
@@ -130,7 +139,9 @@ protected:
 
 	UFUNCTION()
 	void CreateSelectionBoxMesh(int32 Index, FVector StartPoint,FVector EndPoint, float Thickness);
-	
+
+	UFUNCTION()
+	void CreateOutlineMesh(int32 BottomRow, int32 TopRow, int32 LeftColumn, int32 RightColumn);
 
 private:
 
